@@ -9,7 +9,17 @@ import Header from "@/components/Header";
 
 const TransporteurDashboard = () => {
   const { profile } = useAuth();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("overview");
+
+  // Handle tab from URL params
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const tab = urlParams.get("tab");
+    if (tab) {
+      setActiveTab(tab);
+    }
+  }, [location.search]);
 
   const mockTrips = [
     {
@@ -325,7 +335,7 @@ const TransporteurDashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </AppLayout>
   );
 };
 
