@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Package, Clock, MapPin, Search, Filter, Star } from "lucide-react";
+import { Package, MapPin, Clock, DollarSign, Star, Search, Plus, Filter } from "lucide-react";
+import AppLayout from "@/components/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
-import Header from "@/components/Header";
+import { useLocation } from "react-router-dom";
 
 const ClientDashboard = () => {
   const { profile } = useAuth();
@@ -56,10 +57,8 @@ const ClientDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
-      <div className="container mx-auto px-4 pt-24 pb-8">
+    <AppLayout>
+      <div className="container mx-auto px-4 py-8 bg-gradient-subtle min-h-screen">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">
             Bonjour {profile?.first_name} !
