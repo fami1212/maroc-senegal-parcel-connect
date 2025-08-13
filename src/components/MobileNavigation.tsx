@@ -66,8 +66,8 @@ const MobileNavigation = () => {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border md:hidden">
-      <div className="flex items-center justify-around px-2 py-1">
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-lg border-t border-border/50 md:hidden shadow-elegant">
+      <div className="flex items-center justify-around px-3 py-2">
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);
@@ -77,20 +77,28 @@ const MobileNavigation = () => {
               key={item.path}
               onClick={() => handleNavigation(item.path)}
               className={cn(
-                "flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-all duration-200 min-w-0 flex-1",
+                "flex flex-col items-center justify-center py-3 px-2 rounded-2xl transition-all duration-300 min-w-0 flex-1 relative",
                 active
-                  ? "text-primary bg-primary/10"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  ? "text-primary bg-gradient-primary/10 shadow-button scale-105"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent/5 hover:scale-102"
               )}
             >
+              {/* Active indicator */}
+              {active && (
+                <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-gradient-primary rounded-full"></div>
+              )}
+              
               <Icon 
-                size={20} 
+                size={22} 
                 className={cn(
-                  "mb-1 transition-transform duration-200",
-                  active && "scale-110"
+                  "mb-1 transition-all duration-300",
+                  active && "text-primary drop-shadow-sm"
                 )}
               />
-              <span className="text-xs font-medium truncate">
+              <span className={cn(
+                "text-xs font-medium truncate transition-all duration-300",
+                active ? "text-primary font-semibold" : "text-muted-foreground"
+              )}>
                 {item.label}
               </span>
             </button>
