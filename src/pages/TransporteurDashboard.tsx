@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Truck, MapPin, Clock, DollarSign, Star, Package, Calendar, Users, Plus } from "lucide-react";
+import TripsList from "@/components/TripsList";
+import NewTripForm from "@/components/forms/NewTripForm";
 import AppLayout from "@/components/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "react-router-dom";
@@ -12,6 +14,7 @@ const TransporteurDashboard = () => {
   const { profile } = useAuth();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState("overview");
+  const [showNewTripForm, setShowNewTripForm] = useState(false);
 
   // Handle tab from URL params
   useEffect(() => {
@@ -146,7 +149,11 @@ const TransporteurDashboard = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid md:grid-cols-2 gap-4">
-                <Button className="h-24 flex-col space-y-2" variant="outline">
+                <Button 
+                  className="h-24 flex-col space-y-2" 
+                  variant="outline"
+                  onClick={() => setActiveTab("trips")}
+                >
                   <Plus className="h-6 w-6" />
                   <span>Nouveau trajet</span>
                 </Button>
@@ -184,46 +191,30 @@ const TransporteurDashboard = () => {
           </TabsContent>
 
           <TabsContent value="trips" className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold">Mes trajets</h2>
-              <Button size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                Nouveau trajet
-              </Button>
-            </div>
-
-            <div className="space-y-4">
-              {mockTrips.map((trip) => (
-                <Card key={trip.id}>
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <h3 className="font-semibold">{trip.route}</h3>
-                          {getStatusBadge(trip.status)}
-                        </div>
-                        <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                          <span className="flex items-center">
-                            <Calendar className="h-4 w-4 mr-1" />
-                            {new Date(trip.departDate).toLocaleDateString()}
-                          </span>
-                          <span className="flex items-center">
-                            <Truck className="h-4 w-4 mr-1" />
-                            {trip.capacity}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold">{trip.price}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {trip.reservations} réservations
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            {showNewTripForm ? (
+              <NewTripForm 
+                onSuccess={() => {
+                  setShowNewTripForm(false);
+                  // Optionally refresh the trips list
+                }}
+                onCancel={() => setShowNewTripForm(false)}
+              />
+            ) : (
+              <>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold">Mes Trajets</h2>
+                    <p className="text-muted-foreground">Gérez vos offres de transport</p>
+                  </div>
+                  <Button onClick={() => setShowNewTripForm(true)}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Nouveau Trajet
+                  </Button>
+                </div>
+                
+                <TripsList showMyTrips={true} />
+              </>
+            )}
           </TabsContent>
 
           <TabsContent value="earnings" className="space-y-6">

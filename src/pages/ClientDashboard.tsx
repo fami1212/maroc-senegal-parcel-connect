@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Package, MapPin, Clock, DollarSign, Star, Search, Plus, Filter } from "lucide-react";
+import ExpeditionsList from "@/components/ExpeditionsList";
+import TripsList from "@/components/TripsList";
+import NewExpeditionForm from "@/components/forms/NewExpeditionForm";
 import AppLayout from "@/components/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "react-router-dom";
@@ -12,6 +15,7 @@ const ClientDashboard = () => {
   const { profile } = useAuth();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState("overview");
+  const [showNewExpeditionForm, setShowNewExpeditionForm] = useState(false);
 
   // Handle tab from URL params
   useEffect(() => {
@@ -131,12 +135,20 @@ const ClientDashboard = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid md:grid-cols-2 gap-4">
-                <Button className="h-24 flex-col space-y-2" variant="outline">
+                <Button 
+                  className="h-24 flex-col space-y-2" 
+                  variant="outline"
+                  onClick={() => setActiveTab("shipments")}
+                >
                   <Plus className="h-6 w-6" />
                   <span>Nouvelle expédition</span>
                 </Button>
                 
-                <Button className="h-24 flex-col space-y-2" variant="outline">
+                <Button 
+                  className="h-24 flex-col space-y-2" 
+                  variant="outline"
+                  onClick={() => setActiveTab("search")}
+                >
                   <Search className="h-6 w-6" />
                   <span>Rechercher transporteurs</span>
                 </Button>
@@ -145,66 +157,44 @@ const ClientDashboard = () => {
           </TabsContent>
 
           <TabsContent value="shipments" className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold">Mes expéditions</h2>
-              <div className="flex space-x-2">
-                <Button variant="outline" size="sm">
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filtrer
-                </Button>
-                <Button size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Nouvelle expédition
-                </Button>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              {mockShipments.map((shipment) => (
-                <Card key={shipment.id}>
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <h3 className="font-semibold">Vers {shipment.destination}</h3>
-                          {getStatusBadge(shipment.status)}
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          Transporteur: {shipment.transporteur}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Créé le {new Date(shipment.createdAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold">{shipment.price}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Livraison prévue: {new Date(shipment.estimatedDelivery).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            {showNewExpeditionForm ? (
+              <NewExpeditionForm 
+                onSuccess={() => {
+                  setShowNewExpeditionForm(false);
+                  // Optionally refresh the expeditions list
+                }}
+                onCancel={() => setShowNewExpeditionForm(false)}
+              />
+            ) : (
+              <>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold">Mes Expéditions</h2>
+                    <p className="text-muted-foreground">Gérez vos envois de colis</p>
+                  </div>
+                  <Button onClick={() => setShowNewExpeditionForm(true)}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Nouvelle Expédition
+                  </Button>
+                </div>
+                
+                <ExpeditionsList showMyExpeditions={true} />
+              </>
+            )}
           </TabsContent>
 
           <TabsContent value="search" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Rechercher des transporteurs</CardTitle>
-                <CardDescription>
-                  Trouvez le transporteur idéal pour votre expédition
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <p className="text-center text-muted-foreground py-8">
-                    Fonctionnalité de recherche en cours de développement...
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            <div>
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold">Rechercher des transporteurs</h2>
+                <p className="text-muted-foreground">Trouvez le transporteur idéal pour votre expédition</p>
+              </div>
+              
+              <TripsList onSelectTrip={(trip) => {
+                // TODO: Implement trip selection logic for booking
+                console.log("Selected trip:", trip);
+              }} />
+            </div>
           </TabsContent>
 
           <TabsContent value="profile" className="space-y-6">

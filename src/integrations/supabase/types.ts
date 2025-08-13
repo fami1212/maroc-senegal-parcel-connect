@@ -14,6 +14,98 @@ export type Database = {
   }
   public: {
     Tables: {
+      expeditions: {
+        Row: {
+          client_id: string
+          content_type: string
+          created_at: string | null
+          departure_city: string
+          description: string | null
+          destination_city: string
+          dimensions_cm: string | null
+          id: string
+          max_budget: number | null
+          photos: string[] | null
+          preferred_date: string | null
+          status: Database["public"]["Enums"]["shipment_status"] | null
+          title: string
+          transport_type: Database["public"]["Enums"]["transport_type"] | null
+          updated_at: string | null
+          weight_kg: number
+        }
+        Insert: {
+          client_id: string
+          content_type: string
+          created_at?: string | null
+          departure_city: string
+          description?: string | null
+          destination_city: string
+          dimensions_cm?: string | null
+          id?: string
+          max_budget?: number | null
+          photos?: string[] | null
+          preferred_date?: string | null
+          status?: Database["public"]["Enums"]["shipment_status"] | null
+          title: string
+          transport_type?: Database["public"]["Enums"]["transport_type"] | null
+          updated_at?: string | null
+          weight_kg: number
+        }
+        Update: {
+          client_id?: string
+          content_type?: string
+          created_at?: string | null
+          departure_city?: string
+          description?: string | null
+          destination_city?: string
+          dimensions_cm?: string | null
+          id?: string
+          max_budget?: number | null
+          photos?: string[] | null
+          preferred_date?: string | null
+          status?: Database["public"]["Enums"]["shipment_status"] | null
+          title?: string
+          transport_type?: Database["public"]["Enums"]["transport_type"] | null
+          updated_at?: string | null
+          weight_kg?: number
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          reservation_id: string
+          sender_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          reservation_id: string
+          sender_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          reservation_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -56,6 +148,161 @@ export type Database = {
         }
         Relationships: []
       }
+      reservations: {
+        Row: {
+          client_id: string
+          created_at: string | null
+          delivery_address: string | null
+          delivery_date: string | null
+          expedition_id: string
+          id: string
+          pickup_address: string | null
+          pickup_date: string | null
+          status: Database["public"]["Enums"]["shipment_status"] | null
+          total_price: number
+          tracking_code: string | null
+          transporteur_id: string
+          trip_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string | null
+          delivery_address?: string | null
+          delivery_date?: string | null
+          expedition_id: string
+          id?: string
+          pickup_address?: string | null
+          pickup_date?: string | null
+          status?: Database["public"]["Enums"]["shipment_status"] | null
+          total_price: number
+          tracking_code?: string | null
+          transporteur_id: string
+          trip_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string | null
+          delivery_address?: string | null
+          delivery_date?: string | null
+          expedition_id?: string
+          id?: string
+          pickup_address?: string | null
+          pickup_date?: string | null
+          status?: Database["public"]["Enums"]["shipment_status"] | null
+          total_price?: number
+          tracking_code?: string | null
+          transporteur_id?: string
+          trip_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservations_expedition_id_fkey"
+            columns: ["expedition_id"]
+            isOneToOne: false
+            referencedRelation: "expeditions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reviews: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          id: string
+          rating: number | null
+          reservation_id: string
+          reviewed_id: string
+          reviewer_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          rating?: number | null
+          reservation_id: string
+          reviewed_id: string
+          reviewer_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          rating?: number | null
+          reservation_id?: string
+          reviewed_id?: string
+          reviewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trips: {
+        Row: {
+          available_volume_m3: number | null
+          available_weight_kg: number
+          created_at: string | null
+          departure_city: string
+          departure_date: string
+          departure_time: string | null
+          destination_city: string
+          id: string
+          price_per_kg: number
+          status: Database["public"]["Enums"]["trip_status"] | null
+          transport_type: Database["public"]["Enums"]["transport_type"]
+          transporteur_id: string
+          updated_at: string | null
+          vehicle_info: string | null
+        }
+        Insert: {
+          available_volume_m3?: number | null
+          available_weight_kg: number
+          created_at?: string | null
+          departure_city: string
+          departure_date: string
+          departure_time?: string | null
+          destination_city: string
+          id?: string
+          price_per_kg: number
+          status?: Database["public"]["Enums"]["trip_status"] | null
+          transport_type: Database["public"]["Enums"]["transport_type"]
+          transporteur_id: string
+          updated_at?: string | null
+          vehicle_info?: string | null
+        }
+        Update: {
+          available_volume_m3?: number | null
+          available_weight_kg?: number
+          created_at?: string | null
+          departure_city?: string
+          departure_date?: string
+          departure_time?: string | null
+          destination_city?: string
+          id?: string
+          price_per_kg?: number
+          status?: Database["public"]["Enums"]["trip_status"] | null
+          transport_type?: Database["public"]["Enums"]["transport_type"]
+          transporteur_id?: string
+          updated_at?: string | null
+          vehicle_info?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -64,6 +311,14 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      shipment_status:
+        | "pending"
+        | "confirmed"
+        | "in_transit"
+        | "delivered"
+        | "cancelled"
+      transport_type: "avion" | "voiture" | "camion" | "bus"
+      trip_status: "open" | "full" | "in_progress" | "completed" | "cancelled"
       user_role: "client" | "transporteur"
     }
     CompositeTypes: {
@@ -192,6 +447,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      shipment_status: [
+        "pending",
+        "confirmed",
+        "in_transit",
+        "delivered",
+        "cancelled",
+      ],
+      transport_type: ["avion", "voiture", "camion", "bus"],
+      trip_status: ["open", "full", "in_progress", "completed", "cancelled"],
       user_role: ["client", "transporteur"],
     },
   },
