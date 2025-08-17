@@ -1,7 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Package2, Truck, Search, DollarSign } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const UserTypesSection = () => {
+  const navigate = useNavigate();
+
   return (
     <section className="py-24 bg-gradient-subtle">
       <div className="container mx-auto px-4">
@@ -57,7 +60,7 @@ const UserTypesSection = () => {
                 </div>
               </div>
 
-              <Button variant="cta" size="lg" className="w-full">
+              <Button variant="cta" size="lg" className="w-full" onClick={() => navigate("/auth")}>
                 Envoyer un colis maintenant
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
@@ -103,7 +106,7 @@ const UserTypesSection = () => {
                 </div>
               </div>
 
-              <Button variant="hero" size="lg" className="w-full">
+              <Button variant="hero" size="lg" className="w-full" onClick={() => navigate("/auth")}>
                 Devenir transporteur
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>

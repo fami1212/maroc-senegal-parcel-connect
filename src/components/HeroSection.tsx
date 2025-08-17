@@ -1,8 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Package, Plane, Truck } from "lucide-react";
 import heroImage from "@/assets/hero-shipping.png";
+import { useNavigate } from "react-router-dom";
 
 const HeroSection = () => {
+  const navigate = useNavigate();
+  
   return (
     <section className="pt-24 pb-16 bg-gradient-subtle min-h-screen flex items-center relative overflow-hidden">
       {/* Background decoration */}
@@ -30,12 +33,12 @@ const HeroSection = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button variant="delivery" size="xl" onClick={() => window.location.href = '/auth'}>
+              <Button variant="delivery" size="xl" onClick={() => navigate("/auth")}>
                 <Package className="mr-2 h-5 w-5" />
                 Envoyer un colis
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
-              <Button variant="outline" size="xl" onClick={() => window.location.href = '/auth'}>
+              <Button variant="outline" size="xl" onClick={() => navigate("/auth")}>
                 <Truck className="mr-2 h-5 w-5" />
                 Devenir transporteur
               </Button>

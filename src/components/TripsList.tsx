@@ -9,6 +9,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import ReservationModal from "@/components/forms/ReservationModal";
+
 import {
   Select,
   SelectContent,
@@ -29,7 +31,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import EditTripForm from "@/components/forms/EditTripForm"; 
+import EditTripForm from "@/components/forms/EditTripForm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface Trip {
@@ -139,6 +141,9 @@ const TripsList = ({
     setIsModalOpen(false);
     setEditingTrip(null);
   };
+
+  const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
+  const [isReservationOpen, setIsReservationOpen] = useState(false);
 
   const getStatusBadge = (status: string) => {
     const variants = {
@@ -302,12 +307,16 @@ const TripsList = ({
                             variant="outline"
                             size="sm"
                             className="sm:w-auto w-full"
-                            onClick={() => onSelectTrip(trip)}
+                            onClick={() => {
+                              setSelectedTrip(trip);
+                              setIsReservationOpen(true);
+                            }}
                             disabled={trip.status !== "open"}
                           >
                             <Package className="w-4 h-4 mr-2" />
                             {expeditionId ? "Réserver" : "Voir"}
                           </Button>
+
                         )
                       )}
                     </div>
@@ -377,6 +386,16 @@ const TripsList = ({
           )}
         </DialogContent>
       </Dialog>
+      <ReservationModal
+        open={isReservationOpen}
+        onClose={() => setIsReservationOpen(false)}
+        trip={selectedTrip}
+        expeditionId={expeditionId}
+        userId={user?.id || ""} // <-- ajouter ici
+      />
+
+
+
     </>
   );
 };
