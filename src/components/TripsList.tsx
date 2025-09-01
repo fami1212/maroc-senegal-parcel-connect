@@ -390,8 +390,7 @@ const TripsList = ({
         open={isReservationOpen}
         onClose={() => setIsReservationOpen(false)}
         trip={selectedTrip}
-        expeditionId={expeditionId}
-        userId={user?.id || ""} // <-- ajouter ici
+        userId={user?.id || ""}
       />
 
 

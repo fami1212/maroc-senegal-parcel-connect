@@ -61,7 +61,7 @@ const EditTripForm = ({ trip, onSuccess, onCancel }: EditTripFormProps) => {
         setLoading(true);
         try {
             const { data: updatedTrips, error } = await supabase
-                .from<Trip>("trips")
+                .from("trips")
                 .update({
                     departure_city: formData.departure_city,
                     destination_city: formData.destination_city,
