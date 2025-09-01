@@ -67,7 +67,7 @@ const EditTripForm = ({ trip, onSuccess, onCancel }: EditTripFormProps) => {
                     destination_city: formData.destination_city,
                     departure_date: date.toISOString().split("T")[0],
                     departure_time: formData.departure_time,
-                    transport_type: formData.transport_type,
+                    transport_type: formData.transport_type as "avion" | "voiture" | "camion" | "bus",
                     available_weight_kg: parseFloat(formData.available_weight_kg),
                     available_volume_m3: formData.available_volume_m3 ? parseFloat(formData.available_volume_m3) : null,
                     price_per_kg: parseFloat(formData.price_per_kg),

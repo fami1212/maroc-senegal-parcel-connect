@@ -33,13 +33,13 @@ export default function ReservationsList({ transporteurId }: ReservationsListPro
   const [loading, setLoading] = useState(false);
 
   const fetchReservations = async () => {
-    if (!transporteurId) return; // ⚠️ Ne rien faire si pas d'ID
+    if (!transporteurId) return;
 
     setLoading(true);
     try {
-      // 🔹 Récupérer les réservations pour ce transporteur
+      // Récupérer les réservations de base
       const { data: reservationsData, error: reservationsError } = await supabase
-        .from("reservations_extended" as any) // Utilise ta vue ou table étendue
+        .from("reservations")
         .select("*")
         .eq("transporteur_id", transporteurId)
         .order("created_at", { ascending: false });
@@ -51,7 +51,32 @@ export default function ReservationsList({ transporteurId }: ReservationsListPro
         return;
       }
 
-      setReservations(reservationsData || []);
+      // Enrichir chaque réservation avec les données client et expédition
+      const enrichedReservations = await Promise.all(
+        (reservationsData || []).map(async (reservation) => {
+          // Récupérer les infos client
+          const { data: clientData } = await supabase
+            .from("profiles")
+            .select("first_name, last_name")
+            .eq("user_id", reservation.client_id)
+            .single();
+
+          // Récupérer les infos expédition
+          const { data: expeditionData } = await supabase
+            .from("expeditions")
+            .select("title")
+            .eq("id", reservation.expedition_id)
+            .single();
+
+          return {
+            ...reservation,
+            client: clientData,
+            expedition: expeditionData
+          };
+        })
+      );
+
+      setReservations(enrichedReservations);
     } catch (err) {
       console.error("Erreur fetchReservations:", err);
       toast.error("Erreur serveur.");

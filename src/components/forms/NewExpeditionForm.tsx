@@ -7,7 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Package, Upload, X } from "lucide-react";
+import { CalendarIcon, Package } from "lucide-react";
+import PhotoUpload from "@/components/PhotoUpload";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -73,7 +74,7 @@ const NewExpeditionForm = ({ onSuccess, onCancel }: NewExpeditionFormProps) => {
     }
   };
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -250,6 +251,21 @@ const NewExpeditionForm = ({ onSuccess, onCancel }: NewExpeditionFormProps) => {
                 </PopoverContent>
               </Popover>
             </div>
+          </div>
+
+          {/* Photos du colis */}
+          <div>
+            <Label className="text-base font-semibold">Photos du colis (optionnel)</Label>
+            <PhotoUpload
+              photos={formData.photos}
+              onPhotosChange={(photos) => handleInputChange("photos", photos)}
+              maxPhotos={5}
+              bucketName="expedition-photos"
+              folder="expeditions"
+            />
+            <p className="text-xs text-muted-foreground mt-2">
+              Ajoutez des photos pour rassurer les transporteurs
+            </p>
           </div>
 
           {/* Actions */}
