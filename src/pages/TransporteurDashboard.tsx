@@ -7,6 +7,7 @@ import TripsList from "@/components/TripsList";
 import NewTripForm from "@/components/forms/NewTripForm";
 import ReservationsList from "@/components/ReservationsList";
 import EarningsManagement from "@/components/EarningsManagement";
+import AdvancedStats from "@/components/AdvancedStats";
 import KYCVerification from "@/components/KYCVerification";
 import RoleBasedLayout from "@/components/RoleBasedLayout";
 import { useAuth } from "@/hooks/useAuth";
@@ -28,10 +29,12 @@ const TransporteurDashboard = () => {
         return renderEarnings();
       case 'kyc':
         return renderKYC();
-      case 'profile':
-        return renderProfile();
-      default:
-        return renderDashboard();
+        case 'stats':
+          return renderStats();
+        case 'profile':
+          return renderProfile();
+        default:
+          return renderDashboard();
     }
   };
 
@@ -170,8 +173,8 @@ const TransporteurDashboard = () => {
         <h2 className="text-2xl font-bold">Mes réservations</h2>
         <p className="text-muted-foreground">Gérez les réservations de vos trajets</p>
       </div>
-      {profile?.id ? (
-        <ReservationsList transporteurId={profile.id} />
+      {profile?.user_id ? (
+        <ReservationsList transporteurId={profile.user_id} />
       ) : (
         <p>Chargement des réservations...</p>
       )}
@@ -195,6 +198,16 @@ const TransporteurDashboard = () => {
         <p className="text-muted-foreground">Vérifiez votre identité pour débloquer toutes les fonctionnalités</p>
       </div>
       <KYCVerification />
+    </div>
+  );
+
+  const renderStats = () => (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold">Statistiques avancées</h2>
+        <p className="text-muted-foreground">Analyse détaillée de votre performance</p>
+      </div>
+      <AdvancedStats userType="transporteur" />
     </div>
   );
 

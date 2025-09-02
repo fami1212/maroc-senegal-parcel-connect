@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import ExpeditionsList from "@/components/ExpeditionsList";
 import TripsList from "@/components/TripsList";
 import NewExpeditionForm from "@/components/forms/NewExpeditionForm";
-import ReservationsList from "@/components/ReservationsList";
+import ClientReservationsList from "@/components/ClientReservationsList";
+import AdvancedStats from "@/components/AdvancedStats";
 import RoleBasedLayout from "@/components/RoleBasedLayout";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -24,10 +25,12 @@ const ClientDashboard = () => {
         return renderReservations();
       case 'trips-search':
         return renderTripsSearch();
-      case 'profile':
-        return renderProfile();
-      default:
-        return renderDashboard();
+        case 'stats':
+          return renderStats();
+        case 'profile':
+          return renderProfile();
+        default:
+          return renderDashboard();
     }
   };
 
@@ -143,8 +146,8 @@ const ClientDashboard = () => {
         <h2 className="text-2xl font-bold">Mes Réservations</h2>
         <p className="text-muted-foreground">Suivez vos réservations de transport</p>
       </div>
-      {profile?.id ? (
-        <ReservationsList transporteurId={profile.id} />
+      {profile?.user_id ? (
+        <ClientReservationsList clientId={profile.user_id} />
       ) : (
         <p>Chargement des réservations...</p>
       )}
@@ -160,6 +163,16 @@ const ClientDashboard = () => {
       <TripsList onSelectTrip={(trip) => {
         console.log("Selected trip:", trip);
       }} />
+    </div>
+  );
+
+  const renderStats = () => (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold">Mes statistiques</h2>
+        <p className="text-muted-foreground">Analyse de votre utilisation de la plateforme</p>
+      </div>
+      <AdvancedStats userType="client" />
     </div>
   );
 
