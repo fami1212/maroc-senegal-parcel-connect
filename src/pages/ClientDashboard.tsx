@@ -7,6 +7,7 @@ import TripsList from "@/components/TripsList";
 import NewExpeditionForm from "@/components/forms/NewExpeditionForm";
 import ClientReservationsList from "@/components/ClientReservationsList";
 import AdvancedStats from "@/components/AdvancedStats";
+import VerificationStatus from "@/components/VerificationStatus";
 import RoleBasedLayout from "@/components/RoleBasedLayout";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -146,6 +147,9 @@ const ClientDashboard = () => {
         <h2 className="text-2xl font-bold">Mes Réservations</h2>
         <p className="text-muted-foreground">Suivez vos réservations de transport</p>
       </div>
+      
+      <VerificationStatus />
+      
       {profile?.user_id ? (
         <ClientReservationsList clientId={profile.user_id} />
       ) : (

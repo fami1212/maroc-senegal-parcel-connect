@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import ChatComponent from "./ChatComponent";
+import InstantMessaging from "./InstantMessaging";
 import GPSTracking from "./GPSTracking";
 import RatingSystem from "./RatingSystem";
 
@@ -140,8 +141,8 @@ export default function ClientReservationsList({ clientId }: ClientReservationsL
             </div>
             
             {/* Actions spécifiques au client */}
-            <div className="flex flex-wrap gap-2">
-              <ChatComponent 
+            <div className="flex flex-wrap gap-2 pt-4 border-t">
+              <InstantMessaging 
                 reservationId={res.id}
                 otherUserId={res.transporteur_id}
                 otherUserName={`${res.transporteur?.first_name} ${res.transporteur?.last_name}`}

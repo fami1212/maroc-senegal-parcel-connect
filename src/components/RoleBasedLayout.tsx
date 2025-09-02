@@ -216,12 +216,15 @@ const RoleBasedLayout = ({ children, activeView, onViewChange }: RoleBasedLayout
             <Card className="card-modern">
               <CardContent className="p-4">
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${(profile as any)?.kyc_verified ? 'bg-success' : 'bg-warning'}`} />
-                    <span className="text-sm">
-                      {(profile as any)?.kyc_verified ? 'Compte vérifié' : 'Vérification requise'}
-                    </span>
-                  </div>
+            <div>
+              <label className="text-sm font-medium">Statut de vérification</label>
+              <div className="flex items-center space-x-2">
+                <div className={`w-2 h-2 rounded-full ${profile?.is_verified ? 'bg-success' : 'bg-warning'}`} />
+                <span className="text-sm">
+                  {profile?.is_verified ? 'Compte vérifié' : 'Vérification requise'}
+                </span>
+              </div>
+            </div>
                   
                   {profile?.role === 'transporteur' && (
                     <div className="flex items-center gap-2">

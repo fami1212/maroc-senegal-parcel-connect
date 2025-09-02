@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import InstantMessaging from "./InstantMessaging";
 
 interface Reservation {
   id: string;
@@ -136,28 +137,40 @@ export default function ReservationsList({ transporteurId }: ReservationsListPro
             </CardTitle>
             {getStatusBadge(res.status)}
           </CardHeader>
-          <CardContent className="flex flex-col md:flex-row justify-between gap-4">
-            <div>
-              <p><strong>Ramassage :</strong> {res.pickup_address}</p>
-              <p><strong>Date :</strong> {new Date(res.pickup_date).toLocaleDateString()}</p>
+          <CardContent className="space-y-4">
+            <div className="grid md:grid-cols-3 gap-4">
+              <div>
+                <p><strong>Ramassage :</strong> {res.pickup_address}</p>
+                <p><strong>Date :</strong> {new Date(res.pickup_date).toLocaleDateString()}</p>
+              </div>
+              <div>
+                <p><strong>Livraison :</strong> {res.delivery_address}</p>
+                <p><strong>Date :</strong> {res.delivery_date ? new Date(res.delivery_date).toLocaleDateString() : "À définir"}</p>
+              </div>
+              <div>
+                <p><strong>Total :</strong> {res.total_price} MAD</p>
+              </div>
             </div>
-            <div>
-              <p><strong>Livraison :</strong> {res.delivery_address}</p>
-              <p><strong>Date :</strong> {new Date(res.delivery_date).toLocaleDateString()}</p>
-            </div>
-            <div>
-              <p><strong>Total :</strong> {res.total_price} MAD</p>
-            </div>
-            <div className="flex flex-col gap-2">
-              {res.status === "pending" && (
-                <Button onClick={() => updateStatus(res.id, "confirmed")}>Confirmer</Button>
-              )}
-              {res.status === "confirmed" && (
-                <Button onClick={() => updateStatus(res.id, "in_transit")}>Mettre en transit</Button>
-              )}
-              {res.status === "in_transit" && (
-                <Button onClick={() => updateStatus(res.id, "delivered")}>Marquer livrée</Button>
-              )}
+            
+            {/* Actions transporteur */}
+            <div className="flex flex-wrap gap-2 pt-4 border-t">
+              <InstantMessaging 
+                reservationId={res.id}
+                otherUserId={res.client_id}
+                otherUserName={`${res.client?.first_name} ${res.client?.last_name}`}
+              />
+              
+              <div className="flex flex-col gap-2">
+                {res.status === "pending" && (
+                  <Button onClick={() => updateStatus(res.id, "confirmed")}>Confirmer</Button>
+                )}
+                {res.status === "confirmed" && (
+                  <Button onClick={() => updateStatus(res.id, "in_transit")}>Mettre en transit</Button>
+                )}
+                {res.status === "in_transit" && (
+                  <Button onClick={() => updateStatus(res.id, "delivered")}>Marquer livrée</Button>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>

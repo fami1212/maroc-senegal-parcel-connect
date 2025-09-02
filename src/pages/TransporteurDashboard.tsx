@@ -9,6 +9,7 @@ import ReservationsList from "@/components/ReservationsList";
 import EarningsManagement from "@/components/EarningsManagement";
 import AdvancedStats from "@/components/AdvancedStats";
 import KYCVerification from "@/components/KYCVerification";
+import VerificationStatus from "@/components/VerificationStatus";
 import RoleBasedLayout from "@/components/RoleBasedLayout";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -173,6 +174,9 @@ const TransporteurDashboard = () => {
         <h2 className="text-2xl font-bold">Mes réservations</h2>
         <p className="text-muted-foreground">Gérez les réservations de vos trajets</p>
       </div>
+      
+      <VerificationStatus />
+      
       {profile?.user_id ? (
         <ReservationsList transporteurId={profile.user_id} />
       ) : (
