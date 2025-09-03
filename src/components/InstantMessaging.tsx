@@ -57,15 +57,19 @@ const InstantMessaging = ({ reservationId, otherUserId, otherUserName }: Instant
       // Enrichir avec les données des expéditeurs
       const enrichedMessages = await Promise.all(
         (data || []).map(async (msg) => {
-          const { data: senderData } = await supabase
+          const { data: senderData, error: profileError } = await supabase
             .from("profiles")
             .select("first_name, last_name")
             .eq("user_id", msg.sender_id)
             .single();
 
+          if (profileError) {
+            console.error("Erreur récupération profil:", profileError);
+          }
+
           return {
             ...msg,
-            sender: senderData
+            sender: senderData || { first_name: "Utilisateur", last_name: "" }
           };
         })
       );
@@ -229,7 +233,7 @@ const InstantMessaging = ({ reservationId, otherUserId, otherUserName }: Instant
                         <span className="text-xs opacity-75">
                           {msg.sender_id === user?.id 
                             ? "Vous" 
-                            : `${msg.sender?.first_name} ${msg.sender?.last_name}`
+                            : `${msg.sender?.first_name || "Utilisateur"} ${msg.sender?.last_name || ""}`.trim()
                           }
                         </span>
                       </div>

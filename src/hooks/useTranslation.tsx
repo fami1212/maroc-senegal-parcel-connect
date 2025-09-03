@@ -203,6 +203,9 @@ export const TranslationProvider = ({ children }: { children: ReactNode }) => {
     // Changer la direction du texte pour l'arabe
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = lang;
+    
+    // Force un re-render de l'application
+    window.location.reload();
   };
 
   useEffect(() => {

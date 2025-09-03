@@ -9,10 +9,15 @@ import ClientReservationsList from "@/components/ClientReservationsList";
 import AdvancedStats from "@/components/AdvancedStats";
 import VerificationStatus from "@/components/VerificationStatus";
 import RoleBasedLayout from "@/components/RoleBasedLayout";
+import DashboardStats from "@/components/DashboardStats";
+import QuickActionsPanel from "@/components/QuickActionsPanel";
+import RecentActivityFeed from "@/components/RecentActivityFeed";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const ClientDashboard = () => {
   const { profile } = useAuth();
+  const { t } = useTranslation();
   const [activeView, setActiveView] = useState("dashboard");
   const [showNewExpeditionForm, setShowNewExpeditionForm] = useState(false);
 
@@ -36,83 +41,34 @@ const ClientDashboard = () => {
   };
 
   const renderDashboard = () => (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-foreground mb-2">Aperçu</h2>
-        <p className="text-muted-foreground">Vue d'ensemble de vos expéditions</p>
+    <div className="space-y-8 animate-fade-in">
+      {/* Welcome Section */}
+      <div className="bg-gradient-hero p-6 rounded-2xl text-white shadow-elegant">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">
+              {t('dashboard.welcome')}, {profile?.first_name}! 👋
+            </h1>
+            <p className="text-white/90">
+              Gérez vos expéditions et suivez vos envois facilement
+            </p>
+          </div>
+          <div className="hidden md:block">
+            <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+              <Package className="w-10 h-10 text-white" />
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="card-modern">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total expéditions</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">+2 ce mois</p>
-          </CardContent>
-        </Card>
+      {/* Stats Section */}
+      <DashboardStats userType="client" />
 
-        <Card className="card-modern">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">En transit</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">3</div>
-            <p className="text-xs text-muted-foreground">Actuellement</p>
-          </CardContent>
-        </Card>
-
-        <Card className="card-modern">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Économisé</CardTitle>
-            <MapPin className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">450 MAD</div>
-            <p className="text-xs text-muted-foreground">vs livraison classique</p>
-          </CardContent>
-        </Card>
-
-        <Card className="card-modern">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Satisfaction</CardTitle>
-            <Star className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">4.8</div>
-            <p className="text-xs text-muted-foreground">Note moyenne</p>
-          </CardContent>
-        </Card>
+      {/* Quick Actions and Recent Activity */}
+      <div className="grid lg:grid-cols-2 gap-8">
+        <QuickActionsPanel userType="client" onViewChange={setActiveView} />
+        <RecentActivityFeed userType="client" />
       </div>
-
-      <Card className="card-modern">
-        <CardHeader>
-          <CardTitle>Actions rapides</CardTitle>
-          <CardDescription>Commencez votre prochaine expédition ou trouvez un transporteur</CardDescription>
-        </CardHeader>
-        <CardContent className="grid md:grid-cols-2 gap-4">
-          <Button 
-            className="h-24 flex-col space-y-2" 
-            variant="outline"
-            onClick={() => setActiveView("expeditions")}
-          >
-            <Plus className="h-6 w-6" />
-            <span>Nouvelle expédition</span>
-          </Button>
-          
-          <Button 
-            className="h-24 flex-col space-y-2" 
-            variant="outline"
-            onClick={() => setActiveView("trips-search")}
-          >
-            <Search className="h-6 w-6" />
-            <span>Rechercher transporteurs</span>
-          </Button>
-        </CardContent>
-      </Card>
     </div>
   );
 

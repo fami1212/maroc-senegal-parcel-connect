@@ -11,10 +11,15 @@ import AdvancedStats from "@/components/AdvancedStats";
 import KYCVerification from "@/components/KYCVerification";
 import VerificationStatus from "@/components/VerificationStatus";
 import RoleBasedLayout from "@/components/RoleBasedLayout";
+import DashboardStats from "@/components/DashboardStats";
+import QuickActionsPanel from "@/components/QuickActionsPanel";
+import RecentActivityFeed from "@/components/RecentActivityFeed";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const TransporteurDashboard = () => {
   const { profile } = useAuth();
+  const { t } = useTranslation();
   const [activeView, setActiveView] = useState("dashboard");
   const [showNewTripForm, setShowNewTripForm] = useState(false);
 
@@ -54,89 +59,63 @@ const TransporteurDashboard = () => {
   };
 
   const renderDashboard = () => (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-foreground mb-2">Aperçu</h2>
-        <p className="text-muted-foreground">Vue d'ensemble de votre activité de transport</p>
+    <div className="space-y-8 animate-fade-in">
+      {/* Welcome Section */}
+      <div className="bg-gradient-hero p-6 rounded-2xl text-white shadow-elegant">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">
+              {t('dashboard.welcome')}, {profile?.first_name}! 🚚
+            </h1>
+            <p className="text-white/90">
+              Gérez vos trajets et livraisons facilement
+            </p>
+          </div>
+          <div className="hidden md:block">
+            <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+              <Truck className="w-10 h-10 text-white" />
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="card-modern">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Trajets actifs</CardTitle>
-            <Truck className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">5</div>
-            <p className="text-xs text-muted-foreground">Ce mois</p>
-          </CardContent>
-        </Card>
-        <Card className="card-modern">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Revenus du mois</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">2,450 MAD</div>
-            <p className="text-xs text-muted-foreground">+15% vs mois dernier</p>
-          </CardContent>
-        </Card>
-        <Card className="card-modern">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Colis transportés</CardTitle>
-            <MapPin className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">47</div>
-            <p className="text-xs text-muted-foreground">Ce mois</p>
-          </CardContent>
-        </Card>
-        <Card className="card-modern">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Note moyenne</CardTitle>
-            <Star className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">4.9</div>
-            <p className="text-xs text-muted-foreground">Excellent</p>
-          </CardContent>
-        </Card>
+      {/* Stats Section */}
+      <DashboardStats userType="transporteur" />
+
+      {/* Quick Actions and Recent Activity */}
+      <div className="grid lg:grid-cols-2 gap-8">
+        <QuickActionsPanel userType="transporteur" onViewChange={setActiveView} />
+        <RecentActivityFeed userType="transporteur" />
       </div>
 
+      {/* Upcoming Trips Preview */}
       <Card className="card-modern">
         <CardHeader>
-          <CardTitle>Actions rapides</CardTitle>
-          <CardDescription>Proposez un nouveau trajet ou gérez vos réservations</CardDescription>
-        </CardHeader>
-        <CardContent className="grid md:grid-cols-2 gap-4">
-          <Button className="h-24 flex-col space-y-2" variant="outline" onClick={() => setActiveView("trips")}>
-            <Plus className="h-6 w-6" />
-            <span>Nouveau trajet</span>
-          </Button>
-          <Button className="h-24 flex-col space-y-2" variant="outline" onClick={() => setActiveView("reservations")}>
-            <Calendar className="h-6 w-6" />
-            <span>Gérer réservations</span>
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card className="card-modern">
-        <CardHeader>
-          <CardTitle>Prochains trajets</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="w-5 h-5 text-primary" />
+            Prochains trajets
+          </CardTitle>
+          <CardDescription>Vos trajets planifiés</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {mockTrips.slice(0, 2).map((trip) => (
-              <div key={trip.id} className="flex justify-between items-center p-4 border rounded-lg">
+              <div key={trip.id} className="flex justify-between items-center p-4 border rounded-xl hover:bg-muted/30 transition-colors">
                 <div>
-                  <h4 className="font-semibold">{trip.route}</h4>
+                  <h4 className="font-semibold text-lg">{trip.route}</h4>
                   <p className="text-sm text-muted-foreground">
                     Départ: {new Date(trip.departDate).toLocaleDateString()}
                   </p>
+                  <p className="text-xs text-muted-foreground">
+                    {trip.capacity} • {trip.price}
+                  </p>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-3">
                   {getStatusBadge(trip.status)}
-                  <span className="text-sm font-medium">{trip.reservations} réservations</span>
+                  <div className="text-right">
+                    <p className="text-sm font-medium">{trip.reservations}</p>
+                    <p className="text-xs text-muted-foreground">réservations</p>
+                  </div>
                 </div>
               </div>
             ))}
@@ -147,17 +126,22 @@ const TransporteurDashboard = () => {
   );
 
   const renderTrips = () => (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       {showNewTripForm ? (
-        <NewTripForm onSuccess={() => setShowNewTripForm(false)} onCancel={() => setShowNewTripForm(false)} />
+        <div className="card-modern p-6">
+          <NewTripForm 
+            onSuccess={() => setShowNewTripForm(false)} 
+            onCancel={() => setShowNewTripForm(false)} 
+          />
+        </div>
       ) : (
         <>
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold">Mes Trajets</h2>
+              <h2 className="text-2xl font-bold">{t('nav.trips')}</h2>
               <p className="text-muted-foreground">Gérez vos offres de transport</p>
             </div>
-            <Button onClick={() => setShowNewTripForm(true)}>
+            <Button onClick={() => setShowNewTripForm(true)} className="btn-delivery">
               <Plus className="w-4 h-4 mr-2" />
               Nouveau Trajet
             </Button>
@@ -169,9 +153,9 @@ const TransporteurDashboard = () => {
   );
 
   const renderReservations = () => (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div>
-        <h2 className="text-2xl font-bold">Mes réservations</h2>
+        <h2 className="text-2xl font-bold">{t('nav.reservations')}</h2>
         <p className="text-muted-foreground">Gérez les réservations de vos trajets</p>
       </div>
       
@@ -180,15 +164,17 @@ const TransporteurDashboard = () => {
       {profile?.user_id ? (
         <ReservationsList transporteurId={profile.user_id} />
       ) : (
-        <p>Chargement des réservations...</p>
+        <div className="card-modern p-8 text-center">
+          <p className="text-muted-foreground">Chargement des réservations...</p>
+        </div>
       )}
     </div>
   );
 
   const renderEarnings = () => (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div>
-        <h2 className="text-2xl font-bold">Gestion des revenus</h2>
+        <h2 className="text-2xl font-bold">{t('nav.earnings')}</h2>
         <p className="text-muted-foreground">Suivez vos gains et paiements</p>
       </div>
       <EarningsManagement />
@@ -196,9 +182,9 @@ const TransporteurDashboard = () => {
   );
 
   const renderKYC = () => (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div>
-        <h2 className="text-2xl font-bold">Vérification d'identité</h2>
+        <h2 className="text-2xl font-bold">{t('nav.kyc')}</h2>
         <p className="text-muted-foreground">Vérifiez votre identité pour débloquer toutes les fonctionnalités</p>
       </div>
       <KYCVerification />
@@ -206,7 +192,7 @@ const TransporteurDashboard = () => {
   );
 
   const renderStats = () => (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div>
         <h2 className="text-2xl font-bold">Statistiques avancées</h2>
         <p className="text-muted-foreground">Analyse détaillée de votre performance</p>
@@ -216,34 +202,71 @@ const TransporteurDashboard = () => {
   );
 
   const renderProfile = () => (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <Card className="card-modern">
         <CardHeader>
-          <CardTitle>Mon profil transporteur</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Star className="w-5 h-5 text-primary" />
+            {t('nav.profile')} transporteur
+          </CardTitle>
           <CardDescription>Gérez vos informations et documents de vérification</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="text-sm font-medium">Prénom</label>
-                <p className="text-muted-foreground">{profile?.first_name}</p>
+                <label className="text-sm font-medium text-muted-foreground">Prénom</label>
+                <p className="text-lg font-semibold">{profile?.first_name || "Non renseigné"}</p>
               </div>
               <div>
-                <label className="text-sm font-medium">Nom</label>
-                <p className="text-muted-foreground">{profile?.last_name}</p>
+                <label className="text-sm font-medium text-muted-foreground">Nom</label>
+                <p className="text-lg font-semibold">{profile?.last_name || "Non renseigné"}</p>
               </div>
             </div>
-            <div>
-              <label className="text-sm font-medium">Type de compte</label>
-              <p className="text-muted-foreground capitalize">{profile?.role}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium">Statut de vérification</label>
-              <div className="flex items-center space-x-2">
-                {profile?.is_verified ? <Badge className="bg-secondary text-secondary-foreground">Vérifié</Badge> : <Badge variant="outline">En attente</Badge>}
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Type de compte</label>
+                <Badge variant="secondary" className="mt-1 capitalize">
+                  {profile?.role}
+                </Badge>
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Statut de vérification</label>
+                <div className="flex items-center space-x-2 mt-1">
+                  {profile?.is_verified ? (
+                    <Badge className="bg-success text-success-foreground">
+                      Vérifié ✓
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-warning">
+                      En attente de vérification
+                    </Badge>
+                  )}
+                </div>
               </div>
             </div>
+
+            {profile?.role === 'transporteur' && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Livraisons effectuées</label>
+                  <p className="text-2xl font-bold text-primary">{(profile as any)?.completed_deliveries || 0}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Note moyenne</label>
+                  <div className="flex items-center gap-2">
+                    <p className="text-2xl font-bold text-accent">{(profile as any)?.average_rating || 0}</p>
+                    <Star className="w-5 h-5 fill-accent text-accent" />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Revenus totaux</label>
+                  <p className="text-2xl font-bold text-success">{(profile as any)?.total_earnings || 0} MAD</p>
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
