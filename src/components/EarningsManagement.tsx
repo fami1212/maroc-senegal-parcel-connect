@@ -8,162 +8,117 @@ import {
   TrendingUp, 
   Calendar, 
   Download, 
-  Eye,
-  Package,
-  Star,
-  Clock,
-  BarChart3
+  CreditCard,
+  Banknote,
+  Wallet,
+  ArrowUpRight,
+  ArrowDownRight
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { toast } from "sonner";
+import { useTranslation } from "@/hooks/useTranslation";
 
-interface EarningsSummary {
-  totalEarnings: number;
-  thisMonthEarnings: number;
-  completedDeliveries: number;
-  averageRating: number;
-  pendingPayments: number;
-}
-
-interface PaymentHistory {
+interface Payment {
   id: string;
   amount: number;
   status: string;
+  payment_method: string;
   created_at: string;
-  reservation: {
-    expedition: {
-      title: string;
-      departure_city: string;
-      destination_city: string;
-    };
-  };
+  reservation_id: string;
+  transporteur_amount: number;
+  commission_amount: number;
+}
+
+interface EarningsStats {
+  totalEarnings: number;
+  thisMonth: number;
+  lastMonth: number;
+  pendingPayments: number;
+  completedDeliveries: number;
 }
 
 const EarningsManagement = () => {
   const { user } = useAuth();
-  const [summary, setSummary] = useState<EarningsSummary>({
+  const { t } = useTranslation();
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [stats, setStats] = useState<EarningsStats>({
     totalEarnings: 0,
-    thisMonthEarnings: 0,
-    completedDeliveries: 0,
-    averageRating: 0,
-    pendingPayments: 0
+    thisMonth: 0,
+    lastMonth: 0,
+    pendingPayments: 0,
+    completedDeliveries: 0
   });
-  const [payments, setPayments] = useState<PaymentHistory[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedPeriod, setSelectedPeriod] = useState('month');
-
-  useEffect(() => {
-    if (user) {
-      fetchEarningsData();
-      fetchPaymentHistory();
-    }
-  }, [user, selectedPeriod]);
 
   const fetchEarningsData = async () => {
     if (!user) return;
 
     try {
-      // Récupérer les données du profil
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("total_earnings, completed_deliveries, average_rating")
-        .eq("user_id", user.id)
-        .single();
-
-      // Calculer les revenus de ce mois
-      const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-      const { data: monthlyPayments } = await supabase
+      // Récupérer les paiements
+      const { data: paymentsData, error: paymentsError } = await supabase
         .from("payments")
-        .select("transporteur_amount")
-        .eq("transporteur_id", user.id)
-        .eq("status", "completed")
-        .gte("created_at", startOfMonth.toISOString());
-
-      const thisMonthEarnings = monthlyPayments?.reduce(
-        (sum, payment) => sum + (payment.transporteur_amount || 0), 0
-      ) || 0;
-
-      // Calculer les paiements en attente
-      const { data: pendingPayments } = await supabase
-        .from("payments")
-        .select("transporteur_amount")
-        .eq("transporteur_id", user.id)
-        .eq("status", "pending");
-
-      const pendingAmount = pendingPayments?.reduce(
-        (sum, payment) => sum + (payment.transporteur_amount || 0), 0
-      ) || 0;
-
-      setSummary({
-        totalEarnings: profile?.total_earnings || 0,
-        thisMonthEarnings,
-        completedDeliveries: profile?.completed_deliveries || 0,
-        averageRating: profile?.average_rating || 0,
-        pendingPayments: pendingAmount
-      });
-
-    } catch (error) {
-      console.error("Erreur lors du chargement des revenus:", error);
-    }
-  };
-
-  const fetchPaymentHistory = async () => {
-    if (!user) return;
-
-    setLoading(true);
-    try {
-      let query = supabase
-        .from("payments")
-        .select(`
-          id,
-          amount,
-          transporteur_amount,
-          status,
-          created_at,
-          reservation:reservations(
-            expedition:expeditions(
-              title,
-              departure_city,
-              destination_city
-            )
-          )
-        `)
+        .select("*")
         .eq("transporteur_id", user.id)
         .order("created_at", { ascending: false });
 
-      // Filtrer par période
-      if (selectedPeriod === 'week') {
-        const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-        query = query.gte("created_at", weekAgo.toISOString());
-      } else if (selectedPeriod === 'month') {
-        const monthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-        query = query.gte("created_at", monthAgo.toISOString());
-      }
+      if (paymentsError) throw paymentsError;
 
-      const { data, error } = await query.limit(50);
+      setPayments(paymentsData || []);
 
-      if (error) throw error;
-      setPayments(data || []);
+      // Calculer les statistiques
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
 
+      const completedPayments = paymentsData?.filter(p => p.status === 'completed') || [];
+      const totalEarnings = completedPayments.reduce((sum, p) => sum + (p.transporteur_amount || 0), 0);
+      
+      const thisMonthPayments = completedPayments.filter(p => 
+        new Date(p.created_at) >= startOfMonth
+      );
+      const lastMonthPayments = completedPayments.filter(p => 
+        new Date(p.created_at) >= startOfLastMonth && new Date(p.created_at) <= endOfLastMonth
+      );
+
+      const thisMonth = thisMonthPayments.reduce((sum, p) => sum + (p.transporteur_amount || 0), 0);
+      const lastMonth = lastMonthPayments.reduce((sum, p) => sum + (p.transporteur_amount || 0), 0);
+      
+      const pendingPayments = paymentsData?.filter(p => p.status === 'pending').length || 0;
+
+      setStats({
+        totalEarnings,
+        thisMonth,
+        lastMonth,
+        pendingPayments,
+        completedDeliveries: completedPayments.length
+      });
     } catch (error) {
-      console.error("Erreur lors du chargement de l'historique:", error);
-      toast.error("Erreur lors du chargement de l'historique");
+      console.error("Erreur récupération revenus:", error);
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchEarningsData();
+  }, [user]);
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('fr-FR', {
+      style: 'currency',
+      currency: 'MAD'
+    }).format(amount);
+  };
+
   const getStatusBadge = (status: string) => {
     const configs = {
       pending: { color: "bg-warning/10 text-warning border-warning/20", label: "En attente" },
-      processing: { color: "bg-primary/10 text-primary border-primary/20", label: "En cours" },
-      completed: { color: "bg-success/10 text-success border-success/20", label: "Complété" },
+      completed: { color: "bg-success/10 text-success border-success/20", label: "Terminé" },
       failed: { color: "bg-destructive/10 text-destructive border-destructive/20", label: "Échoué" }
     };
 
     const config = configs[status as keyof typeof configs] || configs.pending;
-
     return (
       <Badge variant="outline" className={config.color}>
         {config.label}
@@ -171,198 +126,244 @@ const EarningsManagement = () => {
     );
   };
 
-  const exportData = () => {
-    // Créer un CSV simple
-    const csvContent = [
-      ['Date', 'Montant', 'Statut', 'Expédition'],
-      ...payments.map(payment => [
-        new Date(payment.created_at).toLocaleDateString(),
-        `${payment.amount} MAD`,
-        payment.status,
-        payment.reservation?.expedition?.title || 'N/A'
-      ])
-    ].map(row => row.join(',')).join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.setAttribute('hidden', '');
-    a.setAttribute('href', url);
-    a.setAttribute('download', `revenus_${selectedPeriod}.csv`);
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    
-    toast.success("Export téléchargé !");
+  const getPaymentMethodIcon = (method: string) => {
+    const icons = {
+      bank_transfer: Banknote,
+      mobile_money: Wallet,
+      cash: DollarSign
+    };
+    return icons[method as keyof typeof icons] || DollarSign;
   };
+
+  const monthGrowth = stats.lastMonth > 0 
+    ? ((stats.thisMonth - stats.lastMonth) / stats.lastMonth) * 100 
+    : 0;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Chargement des revenus...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Résumé des revenus */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Revenus totaux</p>
-                <p className="text-2xl font-bold">{summary.totalEarnings.toFixed(2)} MAD</p>
-              </div>
-              <DollarSign className="w-8 h-8 text-success" />
+      {/* Statistiques principales */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="card-modern">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Revenus totaux
+            </CardTitle>
+            <div className="p-2 rounded-lg bg-success/10">
+              <DollarSign className="w-4 h-4 text-success" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(stats.totalEarnings)}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats.completedDeliveries} livraisons
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="card-modern">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Ce mois
+            </CardTitle>
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Calendar className="w-4 h-4 text-primary" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(stats.thisMonth)}</div>
+            <div className={`flex items-center text-xs ${
+              monthGrowth >= 0 ? 'text-success' : 'text-destructive'
+            }`}>
+              {monthGrowth >= 0 ? (
+                <ArrowUpRight className="w-4 h-4 mr-1" />
+              ) : (
+                <ArrowDownRight className="w-4 h-4 mr-1" />
+              )}
+              {Math.abs(monthGrowth).toFixed(1)}% vs mois dernier
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Ce mois</p>
-                <p className="text-2xl font-bold">{summary.thisMonthEarnings.toFixed(2)} MAD</p>
-              </div>
-              <TrendingUp className="w-8 h-8 text-primary" />
+        <Card className="card-modern">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Paiements en attente
+            </CardTitle>
+            <div className="p-2 rounded-lg bg-warning/10">
+              <Wallet className="w-4 h-4 text-warning" />
             </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.pendingPayments}</div>
+            <p className="text-xs text-muted-foreground">
+              En cours de traitement
+            </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Livraisons</p>
-                <p className="text-2xl font-bold">{summary.completedDeliveries}</p>
-              </div>
-              <Package className="w-8 h-8 text-accent" />
+        <Card className="card-modern">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Moyenne par livraison
+            </CardTitle>
+            <div className="p-2 rounded-lg bg-accent/10">
+              <TrendingUp className="w-4 h-4 text-accent" />
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Note moyenne</p>
-                <p className="text-2xl font-bold flex items-center gap-1">
-                  {summary.averageRating.toFixed(1)}
-                  <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                </p>
-              </div>
-              <BarChart3 className="w-8 h-8 text-secondary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {formatCurrency(stats.completedDeliveries > 0 ? stats.totalEarnings / stats.completedDeliveries : 0)}
             </div>
+            <p className="text-xs text-muted-foreground">
+              Par expédition
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Paiements en attente */}
-      {summary.pendingPayments > 0 && (
-        <Card className="border-warning/20 bg-warning/5">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <Clock className="w-8 h-8 text-warning" />
-              <div>
-                <h3 className="font-semibold">Paiements en attente</h3>
-                <p className="text-sm text-muted-foreground">
-                  Vous avez {summary.pendingPayments.toFixed(2)} MAD en attente de paiement
-                </p>
+      {/* Détails des revenus */}
+      <Tabs defaultValue="payments" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="payments">Historique des paiements</TabsTrigger>
+          <TabsTrigger value="analytics">Analyses</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="payments" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Paiements récents</CardTitle>
+                  <CardDescription>
+                    Historique de vos revenus et commissions
+                  </CardDescription>
+                </div>
+                <Button variant="outline" size="sm">
+                  <Download className="w-4 h-4 mr-2" />
+                  Exporter
+                </Button>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            </CardHeader>
+            <CardContent>
+              {payments.length > 0 ? (
+                <div className="space-y-4">
+                  {payments.map((payment) => {
+                    const PaymentIcon = getPaymentMethodIcon(payment.payment_method);
+                    return (
+                      <div
+                        key={payment.id}
+                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="p-2 rounded-full bg-muted">
+                            <PaymentIcon className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="font-medium">
+                              {formatCurrency(payment.transporteur_amount || 0)}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              Expédition #{payment.reservation_id.slice(-8)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          {getStatusBadge(payment.status)}
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {new Date(payment.created_at).toLocaleDateString("fr-FR")}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <DollarSign className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>Aucun paiement pour le moment</p>
+                  <p className="text-xs mt-2">Vos revenus apparaîtront ici après vos premières livraisons</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      {/* Historique des paiements */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Historique des paiements</CardTitle>
-              <CardDescription>Détail de vos revenus par livraison</CardDescription>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={exportData}>
-                <Download className="w-4 h-4 mr-2" />
-                Exporter
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-
-        <CardContent>
-          <Tabs value={selectedPeriod} onValueChange={setSelectedPeriod} className="mb-4">
-            <TabsList>
-              <TabsTrigger value="week">7 jours</TabsTrigger>
-              <TabsTrigger value="month">30 jours</TabsTrigger>
-              <TabsTrigger value="all">Tout</TabsTrigger>
-            </TabsList>
-          </Tabs>
-
-          {loading ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">Chargement de l'historique...</p>
-            </div>
-          ) : payments.length > 0 ? (
-            <div className="space-y-4">
-              {payments.map((payment) => (
-                <div key={payment.id} className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium">
-                      {payment.reservation?.expedition?.title || 'Expédition inconnue'}
-                    </h4>
-                    {getStatusBadge(payment.status)}
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
-                    <div>
-                      <span className="font-medium">Trajet :</span>
-                      <br />
-                      {payment.reservation?.expedition?.departure_city} → {payment.reservation?.expedition?.destination_city}
+        <TabsContent value="analytics" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Analyses des revenus</CardTitle>
+              <CardDescription>
+                Aperçu de vos performances financières
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h4 className="font-medium">Revenus par mois</h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Ce mois</span>
+                      <span className="font-medium">{formatCurrency(stats.thisMonth)}</span>
                     </div>
-                    
-                    <div>
-                      <span className="font-medium">Montant :</span>
-                      <br />
-                      <span className="text-lg font-bold text-success">
-                        {payment.amount.toFixed(2)} MAD
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Mois dernier</span>
+                      <span className="font-medium">{formatCurrency(stats.lastMonth)}</span>
+                    </div>
+                    <div className="flex justify-between items-center border-t pt-2">
+                      <span className="text-sm font-medium">Évolution</span>
+                      <span className={`font-medium ${monthGrowth >= 0 ? 'text-success' : 'text-destructive'}`}>
+                        {monthGrowth >= 0 ? '+' : ''}{monthGrowth.toFixed(1)}%
                       </span>
-                    </div>
-                    
-                    <div>
-                      <span className="font-medium">Date :</span>
-                      <br />
-                      {new Date(payment.created_at).toLocaleDateString("fr-FR", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric"
-                      })}
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <DollarSign className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p className="text-muted-foreground">Aucun paiement pour cette période</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
-      {/* Conseils pour augmenter les revenus */}
+                <div className="space-y-4">
+                  <h4 className="font-medium">Commissions</h4>
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">
+                      GoColis prend une commission de 10% sur chaque livraison pour maintenir la plateforme.
+                    </p>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Commission totale payée</span>
+                      <span className="font-medium">
+                        {formatCurrency(payments.reduce((sum, p) => sum + (p.commission_amount || 0), 0))}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Information importante */}
       <Card className="border-primary/20 bg-primary/5">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="w-5 h-5" />
-            Conseils pour augmenter vos revenus
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-2 text-sm">
-            <li>• Maintenez une note élevée en offrant un service de qualité</li>
-            <li>• Proposez des trajets réguliers sur les routes populaires</li>
-            <li>• Répondez rapidement aux demandes de réservation</li>
-            <li>• Fournissez des preuves de livraison claires et professionnelles</li>
-            <li>• Communiquez activement avec vos clients via le chat</li>
-          </ul>
+        <CardContent className="pt-6">
+          <div className="flex gap-3">
+            <CreditCard className="w-5 h-5 text-primary mt-0.5" />
+            <div className="space-y-2 text-sm">
+              <p className="font-medium">À propos des paiements</p>
+              <ul className="space-y-1 text-muted-foreground">
+                <li>• Les paiements sont traités sous 24-48h après livraison</li>
+                <li>• Une commission de 10% est retenue par GoColis</li>
+                <li>• Tous les montants sont en dirhams marocains (MAD)</li>
+                <li>• Vous pouvez exporter vos données pour votre comptabilité</li>
+              </ul>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

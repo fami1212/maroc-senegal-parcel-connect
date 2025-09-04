@@ -30,6 +30,10 @@ const buttonVariants = cva(
         
         /* Special floating action button */
         floating: "bg-gradient-primary text-primary-foreground shadow-float hover:shadow-glow hover:scale-110 transition-all duration-300 rounded-full",
+        
+        /* New semantic variants */
+        success: "bg-success text-success-foreground hover:bg-success/90 shadow-card hover:shadow-elegant transition-all duration-300",
+        warning: "bg-warning text-warning-foreground hover:bg-warning/90 shadow-card hover:shadow-elegant transition-all duration-300",
       },
       size: {
         default: "h-10 px-4 py-2 rounded-xl",

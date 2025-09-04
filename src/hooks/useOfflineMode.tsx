@@ -90,6 +90,18 @@ export const useOfflineMode = () => {
     localStorage.setItem(STORAGE_KEYS.OFFLINE_DATA, JSON.stringify(updated));
   };
 
+  const toggleOfflineMode = useCallback(async () => {
+    if (!isOfflineModeEnabled) {
+      if (!isOnline) {
+        toast.error('Connexion requise pour activer le mode hors ligne');
+        return;
+      }
+      await enableOfflineMode();
+    } else {
+      disableOfflineMode();
+    }
+  }, [isOfflineModeEnabled, isOnline]);
+
   const enableOfflineMode = useCallback(async () => {
     if (!isOnline) {
       toast.error('Connexion requise pour activer le mode hors ligne');
@@ -146,6 +158,33 @@ export const useOfflineMode = () => {
     toast.info(`Action mise en file d'attente - Sera synchronisée à la reconnexion`);
   };
 
+  const syncData = async () => {
+    if (!isOnline) {
+      toast.error('Connexion requise pour la synchronisation');
+      return;
+    }
+
+    setSyncInProgress(true);
+    try {
+      // Synchroniser les actions en attente
+      await syncPendingActions();
+      
+      // Mettre à jour les données locales (simulation)
+      const updatedData = {
+        ...offlineData,
+        lastSync: new Date().toISOString()
+      };
+      
+      saveOfflineData(updatedData);
+      toast.success('Synchronisation terminée');
+    } catch (error) {
+      toast.error('Erreur lors de la synchronisation');
+      throw error;
+    } finally {
+      setSyncInProgress(false);
+    }
+  };
+
   const syncPendingActions = async () => {
     if (!isOnline || pendingActions.length === 0) return;
 
@@ -199,11 +238,14 @@ export const useOfflineMode = () => {
     canUseOffline,
     shouldUseOffline,
     offlineData,
-    pendingActions: pendingActions.length,
+    pendingSyncCount: pendingActions.length,
+    lastSyncTime: offlineData?.lastSync ? new Date(offlineData.lastSync).getTime() : null,
     syncInProgress,
+    toggleOfflineMode,
     enableOfflineMode,
     disableOfflineMode,
     addPendingAction,
+    syncData,
     syncPendingActions,
     saveOfflineData,
     getOfflineExpeditions,
